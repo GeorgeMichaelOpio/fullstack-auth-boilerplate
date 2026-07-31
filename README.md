@@ -1,81 +1,91 @@
-# Flutter-MongoDB-Auth
-This is a Flutter project for building a simple authentication app using a Node.js/Express backend with MongoDB for storage.
+# Fullstack Auth Boilerplate
 
-## Table of Contents
+A production-style authentication starter kit: a Flutter client talking to a Node.js/Express API, with MongoDB for storage and JWTs for session security. Built as a reusable foundation for any app that needs sign-up/login out of the box, rather than a one-off tutorial project.
 
-- [Features](#features)
-- [Getting Started](#getting-started)
-  - [Prerequisites](#prerequisites)
-  - [Installation](#installation)
-- [Usage](#usage)
-- [API Endpoints](#api-endpoints)
-- [Contributing](#contributing)
-- [License](#license)
+**Stack:** Flutter (Dart) · Node.js / Express · MongoDB · JWT · Dio
+
+---
 
 ## Features
 
-- User registration (signup) and authentication (login) using JWTs.
-- Protected endpoint that requires user authentication.
-- Flutter frontend for the authentication flow.
-- MongoDB for storing user information.
-- Dio for making HTTP requests from the Flutter app.
+- User registration and login with hashed passwords
+- JWT-based session authentication
+- Middleware-protected API endpoint that validates the token before granting access
+- Flutter client using Dio for HTTP requests, with token persistence across the auth flow
+- MongoDB schema for user storage
+
+## Architecture
+
+```
+flutter_auth/       → Flutter client (UI, auth state, API calls via Dio)
+nodeExpress_API/     → Express server (routes, JWT middleware, MongoDB models)
+mongodb_databases/   → Sample data / seed files
+```
 
 ## Getting Started
 
 ### Prerequisites
 
-- Flutter SDK (https://flutter.dev/docs/get-started/install)
-- Node.js (https://nodejs.org/)
-- MongoDB (https://www.mongodb.com/try/download/community)
+- [Flutter SDK](https://flutter.dev/docs/get-started/install)
+- [Node.js](https://nodejs.org/)
+- [MongoDB](https://www.mongodb.com/try/download/community) (local instance or Atlas connection string)
 
 ### Installation
 
-1. Clone the repository:
+Clone the repo:
 
-   ```bash
-   git clone https://github.com/GeorgeMichaelOpio/Flutter-MongoDB-Auth.git
-   ```
+```bash
+git clone https://github.com/GeorgeMichaelOpio/fullstack-auth-boilerplate.git
+cd fullstack-auth-boilerplate
+```
 
-2. Navigate to the server directory:
+**Backend setup:**
 
-   ```bash
-   cd Flutter-MongoDB-Auth/nodeExpress_API
-   ```
+```bash
+cd nodeExpress_API
+npm install
+```
 
-3. Install server dependencies:
+Create a `.env` file in `nodeExpress_API/` with:
 
-   ```bash
-   npm install
-   ```
+```
+MONGO_URI=your_mongodb_connection_string
+JWT_SECRET=your_secret_key
+```
 
-4. Set up a MongoDB database and update the `.env` file with your MongoDB URI and secret key.
+Start the server:
 
-5. Run the server:
+```bash
+npm start
+```
 
-   ```bash
-   npm start
-   ```
+**Frontend setup:**
 
-6. Navigate to the Flutter app directory:
-
-   ```bash
-   cd ../Flutter-MongoDB-Auth/flutter_auth
-   ```
-
-7. Run the Flutter app:
-
-   ```bash
-   flutter run
-   ```
+```bash
+cd ../flutter_auth
+flutter pub get
+flutter run
+```
 
 ## API Endpoints
 
-- **POST /signup:** Register a new user.
-- **POST /login:** Authenticate a user.
-- **GET /protected:** Protected endpoint requiring authentication.
+| Method | Endpoint | Description | Auth required |
+|--------|-----------|--------------|----------------|
+| POST | `/signup` | Register a new user | No |
+| POST | `/login` | Authenticate and receive a JWT | No |
+| GET | `/protected` | Sample endpoint gated behind valid JWT | Yes |
+
+## Roadmap / Ideas for extension
+
+- [ ] Refresh token support
+- [ ] Password reset flow
+- [ ] Rate limiting on auth endpoints
+- [ ] Unit tests for the Express routes
 
 ## Contributing
 
-Contributions are welcome.
+Issues and PRs welcome — this is meant to be a starting point others can build on.
 
-```
+## License
+
+MIT
