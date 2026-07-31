@@ -4,8 +4,6 @@ A production-style authentication starter kit: a Flutter client talking to a Nod
 
 **Stack:** Flutter (Dart) · Node.js / Express · MongoDB · JWT · Dio
 
----
-
 ## Features
 
 - User registration and login with hashed passwords
@@ -17,18 +15,18 @@ A production-style authentication starter kit: a Flutter client talking to a Nod
 ## Architecture
 
 ```
-flutter_auth/       → Flutter client (UI, auth state, API calls via Dio)
-nodeExpress_API/     → Express server (routes, JWT middleware, MongoDB models)
-mongodb_databases/   → Sample data / seed files
+frontend/       → Flutter client (UI, auth state, API calls via Dio)
+backend/        → Express server (routes, JWT middleware, MongoDB models)
+backend/seed/   → Sample data / seed files
 ```
 
 ## Getting Started
 
 ### Prerequisites
 
-- [Flutter SDK](https://flutter.dev/docs/get-started/install)
-- [Node.js](https://nodejs.org/)
-- [MongoDB](https://www.mongodb.com/try/download/community) (local instance or Atlas connection string)
+- Flutter SDK
+- Node.js
+- MongoDB (local instance or Atlas connection string)
 
 ### Installation
 
@@ -42,11 +40,11 @@ cd fullstack-auth-boilerplate
 **Backend setup:**
 
 ```bash
-cd nodeExpress_API
+cd backend
 npm install
 ```
 
-Create a `.env` file in `nodeExpress_API/` with:
+Create a `.env` file in `backend/` with:
 
 ```
 MONGO_URI=your_mongodb_connection_string
@@ -62,7 +60,7 @@ npm start
 **Frontend setup:**
 
 ```bash
-cd ../flutter_auth
+cd ../frontend
 flutter pub get
 flutter run
 ```
