@@ -1,70 +1,55 @@
-# Flutter Auth App
+# Flutter Auth Client
 
-## Description
-
-This Flutter app demonstrates user authentication functionality using a server built with Node.js/Express and MongoDB.
-The app allows users to sign up, log in, and view a protected profile page.
+The Flutter client for the [fullstack-auth-boilerplate](https://github.com/GeorgeMichaelOpio/fullstack-auth-boilerplate) project. Handles user signup, login, and a protected profile page, talking to the Express/MongoDB API in `../backend`.
 
 ## Features
 
-- User Registration (Signup)
-- User Login
-- JWT-based Authentication
-- Protected Profile Page
-- Basic Profile Information Display
+- User registration (signup)
+- User login
+- JWT-based authentication
+- Protected profile page
+- Basic profile information display
 
-## Getting Started
-
-### Prerequisites
+## Prerequisites
 
 - [Flutter SDK](https://flutter.dev/docs/get-started/install)
-- [Dart SDK](https://dart.dev/get-dart)
-- [Node.js](https://nodejs.org/)
-- [MongoDB](https://www.mongodb.com/try/download/community)
+- Dart SDK (bundled with Flutter)
+- Node.js and MongoDB (for the backend — see below)
 
-### Installation
+## Installation
 
-1. Clone the repository:
+Clone the full repo (this is a client inside a larger project, not a standalone repo):
 
-   ```bash
-   git clone https://github.com/GeorgeMichaelOpio/Flutter-MongoDB-Auth.git
-   ```
+```bash
+git clone https://github.com/GeorgeMichaelOpio/fullstack-auth-boilerplate.git
+cd fullstack-auth-boilerplate/frontend
+```
 
-2. Navigate to the project folder:
+Install dependencies and run:
 
-   ```bash
-   cd flutter-auth
-   ```
+```bash
+flutter pub get
+flutter run
+```
 
-3. Install Flutter dependencies:
+## Backend setup
 
-   ```bash
-   flutter pub get
-   ```
+This client needs the API running to function. From the repo root:
 
-4. Run the app:
+```bash
+cd ../backend
+npm install
+npm start
+```
 
-   ```bash
-   flutter run
-   ```
+See the [root README](../README.md) for full backend setup, including `.env` configuration.
 
-### Server Setup
-
-Make sure to set up and run the Node.js/Express server along with MongoDB for the app to function correctly
-
-## Server Repository
-
-git clone https://github.com/GeorgeMichaelOpio/Flutter-MongoDB-Auth/tree/main/nodeExpress_API
-
-## Technologies Used
+## Technologies used
 
 - Flutter
 - Dart
-- Dio (HTTP client for Flutter)
-- Node.js
-- Express
-- MongoDB
+- Dio (HTTP client)
 
 ## Contributing
 
-Feel free to contribute by opening issues, submitting pull requests, or suggesting new features.
+Issues and PRs welcome — see the [root README](../README.md) for the full project overview.
