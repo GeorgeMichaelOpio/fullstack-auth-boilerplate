@@ -1,0 +1,127 @@
+# =========================
+# Secrets / environment
+# =========================
+.env
+.env.*
+!.env.example
+*.pem
+
+# =========================
+# Node.js / Express (backend)
+# =========================
+backend/.env
+backend/node_modules/
+backend/npm-debug.log*
+backend/yarn-debug.log*
+backend/yarn-error.log*
+backend/.npm/
+backend/dist/
+backend/build/
+backend/coverage/
+*.log
+
+# =========================
+# Flutter / Dart (frontend)
+# =========================
+frontend/.dart_tool/
+frontend/.flutter-plugins
+frontend/.flutter-plugins-dependencies
+frontend/.packages
+frontend/.pub-cache/
+frontend/.pub/
+frontend/build/
+frontend/*.iml
+frontend/*.ipr
+frontend/*.iws
+
+# Flutter/Dart generated files
+**/doc/api/
+**/ios/Flutter/.last_build_id
+
+# Android (frontend/android)
+frontend/android/**/gradle-wrapper.jar
+frontend/android/.gradle
+frontend/android/captures/
+frontend/android/gradlew
+frontend/android/gradlew.bat
+frontend/android/local.properties
+frontend/android/**/GeneratedPluginRegistrant.java
+frontend/android/key.properties
+frontend/android/app/debug
+frontend/android/app/profile
+frontend/android/app/release
+
+# iOS (frontend/ios)
+frontend/ios/**/*.mode1v3
+frontend/ios/**/*.mode2v3
+frontend/ios/**/*.moved-aside
+frontend/ios/**/*.pbxuser
+frontend/ios/**/*.perspectivev3
+frontend/ios/**/*sync/
+frontend/ios/**/.sconsign.dblite
+frontend/ios/**/.tags*
+frontend/ios/**/.vagrant/
+frontend/ios/**/DerivedData/
+frontend/ios/**/Icon?
+frontend/ios/**/Pods/
+frontend/ios/**/.symlinks/
+frontend/ios/**/profile
+frontend/ios/**/xcuserdata
+frontend/ios/.generated/
+frontend/ios/Flutter/App.framework
+frontend/ios/Flutter/Flutter.framework
+frontend/ios/Flutter/Flutter.podspec
+frontend/ios/Flutter/Generated.xcconfig
+frontend/ios/Flutter/ephemeral/
+frontend/ios/Flutter/app.flx
+frontend/ios/Flutter/app.zip
+frontend/ios/Flutter/flutter_assets/
+frontend/ios/Flutter/flutter_export_environment.sh
+frontend/ios/ServiceDefinitions.json
+frontend/ios/Runner/GeneratedPluginRegistrant.*
+
+# macOS (frontend/macos)
+frontend/macos/Flutter/GeneratedPluginRegistrant.swift
+frontend/macos/Flutter/ephemeral
+
+# Linux (frontend/linux)
+frontend/linux/flutter/ephemeral
+
+# Windows (frontend/windows)
+frontend/windows/flutter/ephemeral
+
+# Web (frontend/web)
+frontend/web/**/*.js.map
+
+# Coverage
+frontend/coverage/
+
+# Symbolication
+frontend/app.*.symbols
+
+# Exceptions to above rules
+!frontend/android/gradle-wrapper.jar
+!frontend/**/default.mode1v3
+!frontend/**/default.mode2v3
+!frontend/**/default.pbxuser
+!frontend/**/default.perspectivev3
+
+# =========================
+# Editors / IDEs
+# =========================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# =========================
+# OS-generated files
+# =========================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
