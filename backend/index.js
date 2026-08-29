@@ -37,7 +37,7 @@ let db;
 async function connectToDatabase() {
   await client.connect();
   console.log('Connected to MongoDB');
-  db = client.db('auth_demo');
+  db = client.db('auth');
 
   // Enforce unique emails at the database level, not just in application code
   await db.collection('users').createIndex({ email: 1 }, { unique: true });

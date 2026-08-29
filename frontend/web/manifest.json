@@ -1,6 +1,6 @@
 {
-    "name": "flutter_auth",
-    "short_name": "flutter_auth",
+    "name": "fullstack_auth_boilerplate",
+    "short_name": "fullstack_auth_boilerplate",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
