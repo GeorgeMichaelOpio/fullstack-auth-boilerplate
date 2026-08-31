@@ -12,40 +12,35 @@ enum AuthStatus { unknown, authenticated, unauthenticated }
 ///
 /// IMPORTANT: [status] drives which *entire screen* `RootRouter` shows
 /// (splash vs. auth vs. profile). It must only change when the screen
-/// itself should actually change. A login/signup attempt should NOT flip
-/// [status] mid-flight - doing that previously caused RootRouter to tear
-/// down and rebuild the whole AuthScreen on every submit, which:
-///   1. destroyed the form's TextEditingControllers (typed input vanished), and
-///   2. unmounted the widget before it could show the error SnackBar, so
-///      failures were silently swallowed and it just "went back to login".
-///
-/// [isSubmitting] is the separate, narrow flag forms use to show a spinner
-/// and disable inputs - it never causes a screen change.
+/// itself should actually change - see [isSubmitting] for the flag forms
+/// actually use for their own busy state, and [refreshCurrentUser] for why
+/// a background refresh never touches [status] either.
 class AuthProvider extends ChangeNotifier {
-  AuthProvider({AuthService? authService})
-      : _authService = authService ?? AuthService();
+  AuthProvider({required AuthService authService}) : _authService = authService;
 
   final AuthService _authService;
 
   AuthStatus status = AuthStatus.unknown;
   UserModel? currentUser;
 
-  /// True only while a login/signup request is in flight. Forms watch this
-  /// (not [status]) to show their spinner, so submitting never triggers a
-  /// screen swap.
   bool isSubmitting = false;
-
-  /// Set when a login or signup attempt fails. Forms read this right after
-  /// their own await completes and show it in a SnackBar.
   String? errorMessage;
-
-  /// Set only when restoring a session on cold start fails for a reason
-  /// other than "there simply was no session" (e.g. no internet, server
-  /// unreachable, unexpected error) - see [tryAutoLogin]. The auth screen
-  /// shows this once via [consumeSessionMessage] so the user understands
-  /// why they landed back on the login screen instead of assuming the app
-  /// is just broken or that they were silently logged out for no reason.
   String? sessionMessage;
+
+  // --- Client-side login lockout -------------------------------------
+  // This is a UX/friction measure, not a security control - real rate
+  // limiting has to live on the server, since a client can always be
+  // bypassed. Its job here is just to (a) stop obviously-automated rapid
+  // retries from a well-behaved client, and (b) surface a 429 from the
+  // server with an actual countdown instead of a generic error.
+  int _consecutiveFailures = 0;
+  DateTime? _lockedUntil;
+
+  Duration? get lockoutRemaining {
+    if (_lockedUntil == null) return null;
+    final remaining = _lockedUntil!.difference(DateTime.now());
+    return remaining.isNegative ? null : remaining;
+  }
 
   Future<void> tryAutoLogin() async {
     status = AuthStatus.unknown;
@@ -60,10 +55,6 @@ class AuthProvider extends ChangeNotifier {
         status = AuthStatus.unauthenticated;
       }
     } on ApiException catch (e) {
-      // A stored token existed but we couldn't confirm it (offline, server
-      // down, timeout, unexpected server error) - this is different from
-      // "no token" or "token expired", and the user deserves to know their
-      // session wasn't necessarily invalidated, just unverifiable right now.
       AppLogger.warning('Session restore failed: ${e.message}');
       sessionMessage = "Couldn't restore your session: ${e.message}";
       status = AuthStatus.unauthenticated;
@@ -75,8 +66,16 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Call once when the auth screen is ready to show a session-restore
-  /// message, so it displays exactly once rather than every rebuild.
+  /// Called by ApiClient when a refresh token turns out to be invalid too -
+  /// i.e. the session is genuinely over, not just momentarily unreachable.
+  void forceLogout({String? reason}) {
+    currentUser = null;
+    status = AuthStatus.unauthenticated;
+    sessionMessage = reason ?? 'Your session has expired. Please log in again.';
+    notifyListeners();
+  }
+
+  /// Show a session-restore/force-logout message exactly once.
   String? consumeSessionMessage() {
     final message = sessionMessage;
     sessionMessage = null;
@@ -84,6 +83,13 @@ class AuthProvider extends ChangeNotifier {
   }
 
   Future<bool> login(String email, String password) async {
+    final remaining = lockoutRemaining;
+    if (remaining != null) {
+      errorMessage = 'Too many attempts. Try again in ${remaining.inSeconds}s.';
+      notifyListeners();
+      return false;
+    }
+
     errorMessage = null;
     isSubmitting = true;
     notifyListeners();
@@ -92,19 +98,34 @@ class AuthProvider extends ChangeNotifier {
       final result = await _authService.login(email: email, password: password);
       currentUser = result.user;
       status = AuthStatus.authenticated;
+      _consecutiveFailures = 0;
+      _lockedUntil = null;
       return true;
     } on ApiException catch (e) {
       errorMessage = e.message;
+      _registerFailure(serverRetryAfter: e.statusCode == 429 ? e.retryAfterSeconds : null);
       return false;
     } catch (e, st) {
-      // Catch-all so a bug or unexpected response shape never leaves the
-      // user staring at a stuck spinner with no explanation.
       AppLogger.error('Unexpected login error', error: e, stackTrace: st);
       errorMessage = 'Something went wrong. Please try again.';
       return false;
     } finally {
       isSubmitting = false;
       notifyListeners();
+    }
+  }
+
+  void _registerFailure({int? serverRetryAfter}) {
+    _consecutiveFailures++;
+    if (serverRetryAfter != null) {
+      _lockedUntil = DateTime.now().add(Duration(seconds: serverRetryAfter));
+      return;
+    }
+    // Client-side backoff after repeated failures: 5th failure -> 15s,
+    // growing from there. Purely a speed bump - see note above.
+    if (_consecutiveFailures >= 5) {
+      final backoffSeconds = 15 * (_consecutiveFailures - 4);
+      _lockedUntil = DateTime.now().add(Duration(seconds: backoffSeconds.clamp(15, 300)));
     }
   }
 
@@ -119,18 +140,33 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      await _authService.signup(
-        email: email,
-        password: password,
-        firstName: firstName,
-        lastName: lastName,
-      );
+      await _authService.signup(email: email, password: password, firstName: firstName, lastName: lastName);
       return true;
     } on ApiException catch (e) {
       errorMessage = e.message;
       return false;
     } catch (e, st) {
       AppLogger.error('Unexpected signup error', error: e, stackTrace: st);
+      errorMessage = 'Something went wrong. Please try again.';
+      return false;
+    } finally {
+      isSubmitting = false;
+      notifyListeners();
+    }
+  }
+
+  Future<bool> requestPasswordReset(String email) async {
+    errorMessage = null;
+    isSubmitting = true;
+    notifyListeners();
+    try {
+      await _authService.requestPasswordReset(email);
+      return true;
+    } on ApiException catch (e) {
+      errorMessage = e.message;
+      return false;
+    } catch (e, st) {
+      AppLogger.error('Unexpected password reset error', error: e, stackTrace: st);
       errorMessage = 'Something went wrong. Please try again.';
       return false;
     } finally {

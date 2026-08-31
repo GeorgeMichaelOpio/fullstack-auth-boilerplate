@@ -34,6 +34,15 @@ class AppColors {
   static const Color error = Color(0xFFD92D20);
   static const Color errorSurface = Color(0xFFFEF3F2);
 
+  // Dark mode neutrals
+  static const Color darkBackground = Color(0xFF0B0F0E);
+  static const Color darkSurface = Color(0xFF141918);
+  static const Color darkBorder = Color(0xFF262E2C);
+  static const Color darkInk = Color(0xFFF2F4F3);
+  static const Color darkInkMuted = Color(0xFFA3ACA9);
+  static const Color darkInkFaint = Color(0xFF6E7674);
+  static const Color darkPrimaryLight = Color(0xFF13332D);
+
   static const LinearGradient heroGradient = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,

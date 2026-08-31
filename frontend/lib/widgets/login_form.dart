@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
+import '../screens/forgot_password_screen.dart';
 import '../theme/app_colors.dart';
 import '../utils/validators.dart';
 
@@ -17,9 +19,22 @@ class _LoginFormState extends State<LoginForm> {
   final _passwordController = TextEditingController();
   bool _passwordVisible = false;
   bool _rememberMe = false;
+  Timer? _tickTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    // Ticks the lockout countdown text below the button. Cheap no-op when
+    // there's no active lockout - just triggers a rebuild each second so
+    // the countdown (and its own disappearance once expired) stays live.
+    _tickTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (mounted) setState(() {});
+    });
+  }
 
   @override
   void dispose() {
+    _tickTimer?.cancel();
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
@@ -43,6 +58,8 @@ class _LoginFormState extends State<LoginForm> {
   @override
   Widget build(BuildContext context) {
     final isBusy = context.select<AuthProvider, bool>((a) => a.isSubmitting);
+    final lockoutRemaining = context.select<AuthProvider, Duration?>((a) => a.lockoutRemaining);
+    final isLocked = lockoutRemaining != null;
     final textTheme = Theme.of(context).textTheme;
 
     return Form(
@@ -59,7 +76,7 @@ class _LoginFormState extends State<LoginForm> {
             keyboardType: TextInputType.emailAddress,
             textInputAction: TextInputAction.next,
             autofillHints: const [AutofillHints.email],
-            enabled: !isBusy,
+            enabled: !isBusy && !isLocked,
             decoration: const InputDecoration(
               labelText: 'Email',
               prefixIcon: Icon(Icons.mail_outline_rounded),
@@ -70,7 +87,7 @@ class _LoginFormState extends State<LoginForm> {
           TextFormField(
             controller: _passwordController,
             obscureText: !_passwordVisible,
-            enabled: !isBusy,
+            enabled: !isBusy && !isLocked,
             textInputAction: TextInputAction.done,
             autofillHints: const [AutofillHints.password],
             decoration: InputDecoration(
@@ -113,18 +130,25 @@ class _LoginFormState extends State<LoginForm> {
                 onPressed: isBusy
                     ? null
                     : () {
-                        // TODO: wire up to a real forgot-password flow/screen.
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Password reset coming soon')),
+                        Navigator.of(context).push(
+                          MaterialPageRoute(builder: (_) => const ForgotPasswordScreen()),
                         );
                       },
                 child: const Text('Forgot password?'),
               ),
             ],
           ),
+          if (isLocked) ...[
+            const SizedBox(height: 8),
+            Text(
+              'Too many attempts. Try again in ${lockoutRemaining!.inSeconds}s.',
+              style: textTheme.bodySmall?.copyWith(color: AppColors.error),
+              textAlign: TextAlign.center,
+            ),
+          ],
           const SizedBox(height: 8),
           ElevatedButton(
-            onPressed: isBusy ? null : _submit,
+            onPressed: (isBusy || isLocked) ? null : _submit,
             child: isBusy
                 ? const SizedBox(
                     height: 20,

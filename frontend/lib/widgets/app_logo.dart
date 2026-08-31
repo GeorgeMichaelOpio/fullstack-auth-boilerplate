@@ -26,7 +26,7 @@ class AppLogo extends StatelessWidget {
         ),
         SizedBox(width: size * 0.28),
         Text(
-          'Nimbus',
+          'Flutter Auth Demo',
           style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                 color: light ? Colors.white : AppColors.ink,
                 letterSpacing: -0.5,
